@@ -10,7 +10,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# ===== БЫСТРАЯ ПАНЕЛЬ ВНИЗУ =====
+# ===== ПАНЕЛЬ ВНИЗУ =====
 def quick_panel():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
@@ -23,16 +23,12 @@ def quick_panel():
     )
     return keyboard
 
-# ===== КОМАНДА /start =====
+# ===== /start =====
 @dp.message(Command("start"))
 async def start(message: types.Message):
     await message.answer(
         "🛡️ *КиберЩит | Бот против мошенников*\n\n"
         "Привет! Я помогу тебе не попасться на удочку кибермошенников.\n\n"
-        "🔍 *Проверить ссылку* — отправь мне ссылку\n"
-        "💬 *Проверить сообщение* — отправь текст\n"
-        "📚 *Тест на безопасность* — проверь свои знания\n"
-        "✅ *Чек-лист* — узнай, насколько ты защищен\n\n"
         "#КиберПраво",
         reply_markup=quick_panel(),
         parse_mode="Markdown"
@@ -47,13 +43,13 @@ def analyze_link(url):
         danger_score += 3
         reasons.append("🔴 IP-адрес вместо домена")
     
-    suspicious = ['.xyz', '.top', '.click', '.loan', '.gq', '.ml', '.tk']
+    suspicious = ['.xyz', '.top', '.click', '.loan']
     for dom in suspicious:
         if dom in url:
             danger_score += 2
             reasons.append(f"⚠️ Подозрительный домен {dom}")
     
-    words = ['login', 'verify', 'secure', 'bank', 'confirm', 'signin', 'account']
+    words = ['login', 'verify', 'secure', 'bank', 'confirm']
     for word in words:
         if word in url.lower():
             danger_score += 1
@@ -66,7 +62,7 @@ def analyze_link(url):
     if danger_score >= 5:
         verdict = "🚨 *ОПАСНО!* Мошенническая ссылка!"
     elif danger_score >= 2:
-        verdict = "⚠️ *ПОДОЗРИТЕЛЬНО!* Будьте осторожны!"
+        verdict = "⚠️ *ПОДОЗРИТЕЛЬНО!*"
     else:
         verdict = "✅ *БЕЗОПАСНО*"
     
@@ -84,21 +80,21 @@ def analyze_text(text):
     danger_score = 0
     reasons = []
     
-    urgency = ['срочно', 'немедленно', 'сейчас же', 'в течение часа', 'сегодня']
+    urgency = ['срочно', 'немедленно', 'сейчас же']
     for w in urgency:
         if w in text.lower():
             danger_score += 2
             reasons.append(f"⏰ Давление срочности: '{w}'")
             break
     
-    prize = ['выиграл', 'приз', 'выигрыш', 'подарок', 'акция', 'лотерея']
+    prize = ['выиграл', 'приз', 'подарок', 'акция']
     for w in prize:
         if w in text.lower():
             danger_score += 2
             reasons.append(f"🎁 Подозрительный выигрыш: '{w}'")
             break
     
-    personal = ['код', 'пароль', 'смс', 'карта', 'паспорт', 'реквизиты']
+    personal = ['код', 'пароль', 'смс', 'карта']
     for w in personal:
         if w in text.lower():
             danger_score += 3
@@ -109,17 +105,10 @@ def analyze_text(text):
         danger_score += 2
         reasons.append("🔗 В сообщении есть ссылка")
     
-    official = ['банк', 'мвд', 'налоговая', 'безопасность', 'служба']
-    for w in official:
-        if w in text.lower():
-            danger_score += 2
-            reasons.append(f"🏛️ Имитация организации: '{w}'")
-            break
-    
     if danger_score >= 5:
         verdict = "🚨 *ОПАСНО!* Мошенническое сообщение!"
     elif danger_score >= 2:
-        verdict = "⚠️ *ПОДОЗРИТЕЛЬНО!* Будьте осторожны!"
+        verdict = "⚠️ *ПОДОЗРИТЕЛЬНО!*"
     else:
         verdict = "✅ *БЕЗОПАСНО*"
     
@@ -132,23 +121,23 @@ def analyze_text(text):
     result += f"\n📊 *Риск:* {danger_score}/10\n\n💡 *Совет:* Не переходите по ссылкам и не сообщайте коды!\n\n#КиберПраво"
     return result
 
-# ===== ТЕСТ (5 вопросов) =====
+# ===== ТЕСТ =====
 quiz_questions = [
-    {"question": "1️⃣ Вам пришло СМС: 'Ваша карта заблокирована. Перейдите по ссылке'. Что делать?",
-     "options": ["Перейти по ссылке", "Позвонить в банк", "Удалить СМС"],
-     "correct": 1, "explanation": "Правильно: позвонить в банк. Никогда не переходите по ссылкам из СМС!"},
-    {"question": "2️⃣ Какой пароль самый надежный?",
-     "options": ["123456", "qwerty123", "К$9m#2Lp!7Qx"],
-     "correct": 2, "explanation": "Надежный пароль: 12+ символов, цифры, спецсимволы."},
-    {"question": "3️⃣ Что такое фишинг?",
+    {"question": "Что делать при СМС 'Карта заблокирована, перейдите по ссылке'?",
+     "options": ["Перейти", "Позвонить в банк", "Удалить"],
+     "correct": 1, "explanation": "Позвоните в банк по официальному номеру."},
+    {"question": "Какой пароль самый надежный?",
+     "options": ["123456", "qwerty", "К$9m#2Lp!7Qx"],
+     "correct": 2, "explanation": "Длинный пароль с символами и цифрами."},
+    {"question": "Что такое фишинг?",
      "options": ["Вирус", "Выманивание данных", "Антивирус"],
-     "correct": 1, "explanation": "Фишинг — выманивание личных данных под видом официальных организаций."},
-    {"question": "4️⃣ Можно ли переходить по ссылкам от незнакомцев?",
+     "correct": 1, "explanation": "Фишинг — выманивание личных данных."},
+    {"question": "Можно ли переходить по ссылкам от незнакомцев?",
      "options": ["Да", "Нет", "Если интересно"],
-     "correct": 1, "explanation": "Никогда! Это может быть фишинг или вирус."},
-    {"question": "5️⃣ Зачем мошенникам код из СМС?",
+     "correct": 1, "explanation": "Никогда! Это фишинг."},
+    {"question": "Зачем мошенникам код из СМС?",
      "options": ["Подтвердить номер", "Войти в ваш аккаунт", "Отправить подарок"],
-     "correct": 1, "explanation": "Код из СМС — ключ к вашему аккаунту!"}
+     "correct": 1, "explanation": "Код — ключ к вашему аккаунту."}
 ]
 
 user_quiz = {}
@@ -163,8 +152,7 @@ async def send_quiz_question(message, user_id):
     q_num = user_quiz[user_id]["current"]
     if q_num >= len(quiz_questions):
         score = user_quiz[user_id]["score"]
-        result = f"📊 *Результаты:* {score}/{len(quiz_questions)}\n\n#КиберПраво"
-        await message.answer(result, parse_mode="Markdown")
+        await message.answer(f"📊 *Результаты:* {score}/{len(quiz_questions)}\n\n#КиберПраво", parse_mode="Markdown")
         return
     q = quiz_questions[q_num]
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -194,8 +182,7 @@ async def quiz_answer(callback: types.CallbackQuery):
 
 @dp.callback_query(lambda c: c.data == "checklist")
 async def checklist(callback: types.CallbackQuery):
-    text = "✅ *Чек-лист*\n\n🔐 Разные пароли\n📱 Двухфакторка\n⚠️ Не переходить по ссылкам\n\n#КиберПраво"
-    await callback.message.answer(text, parse_mode="Markdown")
+    await callback.message.answer("✅ *Чек-лист*\n\n🔐 Разные пароли\n📱 Двухфакторка\n⚠️ Не переходить по ссылкам\n\n#КиберПраво", parse_mode="Markdown")
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "check_link")
@@ -223,8 +210,7 @@ async def quick_quiz(message: types.Message):
 
 @dp.message(lambda message: message.text == "✅ Чек-лист")
 async def quick_checklist(message: types.Message):
-    text = "✅ *Чек-лист*\n\n🔐 Разные пароли\n📱 Двухфакторка\n⚠️ Не переходить по ссылкам\n\n#КиберПраво"
-    await message.answer(text, parse_mode="Markdown")
+    await message.answer("✅ *Чек-лист*\n\n🔐 Разные пароли\n📱 Двухфакторка\n⚠️ Не переходить по ссылкам\n\n#КиберПраво", parse_mode="Markdown")
 
 @dp.message()
 async def handle_message(message: types.Message):
@@ -238,6 +224,7 @@ async def handle_message(message: types.Message):
         result = analyze_text(text)
         await message.answer(result, parse_mode="Markdown")
 
+# ===== ЗАПУСК =====
 async def main():
     await dp.start_polling(bot)
 
